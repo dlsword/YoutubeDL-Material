@@ -16,11 +16,16 @@
                                     <ng-container *ngIf="db_file">{{db_file['local_view_count'] ? db_file['local_view_count']+1 : 1}}&nbsp;<ng-container i18n="View count label">views</ng-container></ng-container>
                                 </div>
                                 <div style="white-space: pre-line;" class="col-8 col-lg-9">
-                                    <ng-container *ngIf="db_file && db_file['description']">
+                                    <ng-container *ngIf="db_file">
+                                        <p> title: {{db_file['title'] ? db_file['title']:''}} </p>
+                                        <p> uploader: {{db_file['uploader'] ? db_file['uploader']:''}} </p>
+                                        <p> <a href="{{db_file['url']}}">{{db_file['url']}}</a>
+                                    </ng-container>
+                                    <!-- <ng-container *ngIf="db_file && db_file['description']">
                                         <p>
                                             <app-see-more [text]="db_file['description']"></app-see-more>
                                         </p>
-                                    </ng-container>
+                                    </ng-container> -->
                                     <ng-container *ngIf="!db_file || !db_file['description']">
                                         <p i18n="No description" style="text-align: center;">
                                             No description available.

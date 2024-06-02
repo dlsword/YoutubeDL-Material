@@ -99,6 +99,25 @@
   width: calc(100% + 5px + 5px);
 }
 
+.max-three-lines {
+  display: -webkit-box;
+  display: -moz-box;
+  max-height: 3.3em;
+  line-height: 1.1em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  font-size: 0.8rem;
+  bottom: 5px;
+  position: absolute;
+}
+
+.title-uploader {
+  font-style: italic;
+  font-weight: bolder;
+}
+
 .max-two-lines {
   display: -webkit-box;
   display: -moz-box;

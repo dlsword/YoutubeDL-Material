@@ -25,7 +25,7 @@ ENV npm_config_cache=/app/.npm
 ENV NODE_VERSION=16.14.2
 RUN groupadd -g $GID $USER && useradd --system -m -g $USER --uid $UID $USER && \
     apt update && \
-    apt install -y --no-install-recommends curl ca-certificates tzdata libicu70 libatomic1 && \
+    apt install -y --no-install-recommends curl ca-certificates tzdata libicu70 libatomic1 busybox && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 

@@ -67,7 +67,7 @@
             </div>
 
             <!-- <span *ngIf="!loading" [ngClass]="{'max-two-lines': card_size !== 'small', 'max-one-line': card_size === 'small' }">{{card_size === 'large' && file_obj.uploader ? file_obj.uploader + ' - ' : ''}}<strong>{{!is_playlist ? file_obj.title : file_obj.name}}</strong></span> -->
-            <span *ngIf="!loading" [ngClass]="{'max-two-lines': card_size !== 'small', 'max-one-line': card_size === 'small' }">{{card_size === 'large' && file_obj.uploader ? file_obj.uploader + ' - ' : ''}}{{!is_playlist ? file_obj.title : file_obj.name}}</span>
+            <span *ngIf="!loading" [ngClass]="{'max-three-lines': card_size !== 'small', 'max-one-line': card_size === 'small' }"><span class="title-uploader">{{card_size !== 'small' && file_obj.uploader ? file_obj.uploader + ':' : ''}}</span>{{!is_playlist ? file_obj.title : file_obj.name}}</span>
             <span *ngIf="loading" class="title-loading"><content-loader [backgroundColor]="theme.ghost_primary" [foregroundColor]="theme.ghost_secondary" viewBox="0 0 250 30"><svg:rect x="0" y="0" rx="3" ry="3" width="250" height="30" /></content-loader></span>
         </div>
     </mat-card>
