@@ -26,6 +26,13 @@
     </div>
 </div>
 <div>
+    <div style="position: relative;" *ngIf="usePaginator && selectedIndex > 0">
+        <mat-paginator class="paginator" #paginator (page)="pageChangeEvent($event)" [length]="file_count"
+                [pageSize]="pageSize"
+                [pageSizeOptions]="[50, 5, 10, 25, 100, this.paged_data && this.paged_data.length > 100 ? this.paged_data.length : 250]">
+        </mat-paginator>
+    </div>
+
     <!-- Files -->
     <div *ngIf="!selectMode" class="container" style="margin-bottom: 16px">
         <div class="row justify-content-center">
@@ -99,7 +106,7 @@
     <div style="position: relative;" *ngIf="usePaginator && selectedIndex > 0">
         <mat-paginator class="paginator" #paginator (page)="pageChangeEvent($event)" [length]="file_count"
                 [pageSize]="pageSize"
-                [pageSizeOptions]="[5, 10, 25, 100, this.paged_data && this.paged_data.length > 100 ? this.paged_data.length : 250]">
+                [pageSizeOptions]="[50, 5, 10, 25, 100, this.paged_data && this.paged_data.length > 100 ? this.paged_data.length : 250]">
         </mat-paginator>
     </div>
 </div>

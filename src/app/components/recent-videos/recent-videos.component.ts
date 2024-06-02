@@ -27,7 +27,7 @@ export class RecentVideosComponent implements OnInit {
   @Input() selectedIndex = 1;
   @Output() fileSelectionEmitter = new EventEmitter<{new_selection: string[], thumbnailURL: string}>();
 
-  pageSize = 10;
+  pageSize = 50;
   paged_data: DatabaseFile[] = null;
 
   selected_data: string[] = [];
