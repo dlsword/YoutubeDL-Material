@@ -37,53 +37,27 @@ RUN . "$NVM_DIR/nvm.sh" && nvm install ${NODE_VERSION}
 RUN . "$NVM_DIR/nvm.sh" && nvm use v${NODE_VERSION}
 RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
 
-
+# Build frontend
 ARG BUILDPLATFORM
-################ Frontend
 FROM --platform=${BUILDPLATFORM} node:16 as frontend
 RUN npm install -g @angular/cli
-
-# install node modules
-WORKDIR  /build
+WORKDIR /build
 COPY [ "package.json", "package-lock.json", "angular.json", "tsconfig.json", "/build/" ]
-RUN ls /build/
-RUN npm install
+COPY [ "src/", "/build/src/" ]
+RUN npm install && \
+    npm run build && \
+    ls -al /build/backend/public
+RUN npm uninstall -g @angular/cli
+RUN rm -rf node_modules
 
 
-######### Backend: Install backend deps
+# Install backend deps
 FROM base as backend
 WORKDIR /app
-COPY [ "backend/package.json", "backend/package-lock.json", "/app/"]
+COPY [ "backend/","/app/" ]
 RUN npm config set strict-ssl false && \
     npm install --prod && \
     ls -al
-COPY [ "backend/","/app/" ]
-
-
-########## Final image
-FROM base as final-image
-RUN npm install -g pm2 && \
-    apt update && \
-    apt install -y --no-install-recommends gosu python3-minimal python-is-python3 python3-pip atomicparsley build-essential && \
-    pip install pycryptodomex && \
-    apt remove -y --purge build-essential && \
-    apt autoremove -y --purge && \
-    apt clean && \
-    rm -rf /var/lib/apt/lists/*
-
-
-######### frontend
-FROM frontend as frontendv2
-# Build frontend
-WORKDIR /build
-COPY [ "package.json", "package-lock.json", "angular.json", "tsconfig.json", "/build/"]
-COPY [ "src/", "/build/src/" ]
-RUN ls /build/
-RUN npm run build && \
-    ls -al /build/backend/public
-# RUN npm uninstall -g @angular/cli
-# RUN rm -rf node_modules
-
 
 #FROM base as python
 # armv7 need build from source
@@ -96,14 +70,23 @@ RUN npm run build && \
 #RUN pip install PyGithub requests
 #RUN python GetTwitchDownloader.py
 
-FROM final-image
+# Final image
+FROM base
+RUN npm install -g pm2 && \
+    apt update && \
+    apt install -y --no-install-recommends gosu python3-minimal python-is-python3 python3-pip atomicparsley build-essential && \
+    pip install pycryptodomex && \
+    apt remove -y --purge build-essential && \
+    apt autoremove -y --purge && \
+    apt clean && \
+    rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 # User 1000 already exist from base image
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffmpeg", "/usr/local/bin/ffmpeg" ]
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffprobe", "/usr/local/bin/ffprobe" ]
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/TwitchDownloaderCLI", "/usr/local/bin/TwitchDownloaderCLI"]
 COPY --chown=$UID:$GID --from=backend ["/app/","/app/"]
-COPY --chown=$UID:$GID --from=frontendv2 [ "/build/backend/public/", "/app/public/" ]
+COPY --chown=$UID:$GID --from=frontend [ "/build/backend/public/", "/app/public/" ]
 #COPY --chown=$UID:$GID --from=python ["/app/TwitchDownloaderCLI","/usr/local/bin/TwitchDownloaderCLI"]
 RUN chmod +x /app/fix-scripts/*.sh
 # Add some persistence data
