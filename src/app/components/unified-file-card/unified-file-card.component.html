@@ -3,7 +3,7 @@
         <mat-icon class="audio-video-icon">{{(file_obj.type === 'audio' || file_obj.isAudio) ? 'audiotrack' : 'movie'}}</mat-icon>
         &nbsp;&nbsp;
         <ng-container i18n="Auto-generated label" *ngIf="file_obj.auto">Auto-generated</ng-container>
-        <ng-container *ngIf="!file_obj.auto">{{file_obj.registered | date:'shortDate' : undefined : locale.ngID}}</ng-container>
+        <ng-container *ngIf="!file_obj.auto"> <a href="{{streamURL}}">{{file_obj.registered | date:'shortDate' : undefined : locale.ngID}}</a></ng-container>
     </div>
     <div *ngIf="loading" class="download-time" style="width: 75%; margin-top: 5px;"><content-loader [backgroundColor]="theme.ghost_primary" [foregroundColor]="theme.ghost_secondary" viewBox="0 0 250 30"><svg:rect x="0" y="0" rx="3" ry="3" width="250" height="30" /></content-loader></div>
     <!-- The context menu trigger must be kept above the "more info" menu -->
