@@ -48,11 +48,13 @@
             <button mat-menu-item>Placeholder</button>
         </ng-container>
     </mat-menu>
-    <mat-card [matTooltip]="null" (click)="navigateToFile($event)" matRipple class="file-mat-card" [ngClass]="{'small-mat-card': card_size === 'small', 'file-mat-card': card_size === 'medium', 'large-mat-card': card_size === 'large', 'mat-elevation-z4': !elevated, 'mat-elevation-z8': elevated}">
+    <mat-card [matTooltip]="null"  matRipple class="file-mat-card" [ngClass]="{'small-mat-card': card_size === 'small', 'file-mat-card': card_size === 'medium', 'large-mat-card': card_size === 'large', 'mat-elevation-z4': !elevated, 'mat-elevation-z8': elevated}">
         <div style="padding:5px">
             <div *ngIf="!loading && file_obj.thumbnailURL" class="img-div">
                 <div [ngClass]="{'image-small': card_size === 'small', 'image': card_size === 'medium', 'image-large': card_size === 'large'}" style="position: relative">
-                    <img *ngIf="!hide_image || is_playlist || (file_obj.type === 'audio' || file_obj.isAudio)" [ngClass]="{'image-small': card_size === 'small', 'image': card_size === 'medium', 'image-large': card_size === 'large'}" [src]="file_obj.thumbnailPath ? thumbnailBlobURL : file_obj.thumbnailURL" alt="Thumbnail">
+                    <a href="{{streamURL}}">
+                        <img *ngIf="!hide_image || is_playlist || (file_obj.type === 'audio' || file_obj.isAudio)" [ngClass]="{'image-small': card_size === 'small', 'image': card_size === 'medium', 'image-large': card_size === 'large'}" [src]="file_obj.thumbnailPath ? thumbnailBlobURL : file_obj.thumbnailURL" alt="Thumbnail">
+                    </a>
                     <video *ngIf="elevated && !is_playlist && !(file_obj.type === 'audio' || file_obj.isAudio)" autoplay loop muted [muted]="true" [ngClass]="{'video-small': card_size === 'small', 'video': card_size === 'medium', 'video-large': card_size === 'large'}" [src]="streamURL">
                     </video>
                     <div class="duration-time">
@@ -67,7 +69,7 @@
             </div>
 
             <!-- <span *ngIf="!loading" [ngClass]="{'max-two-lines': card_size !== 'small', 'max-one-line': card_size === 'small' }">{{card_size === 'large' && file_obj.uploader ? file_obj.uploader + ' - ' : ''}}<strong>{{!is_playlist ? file_obj.title : file_obj.name}}</strong></span> -->
-            <span *ngIf="!loading" [ngClass]="{'max-three-lines': card_size !== 'small', 'max-one-line': card_size === 'small' }"><span class="title-uploader">{{card_size !== 'small' && file_obj.uploader ? file_obj.uploader + ':' : ''}}</span>{{!is_playlist ? file_obj.title : file_obj.name}}</span>
+            <span *ngIf="!loading" (click)="navigateToFile($event)" [ngClass]="{'max-three-lines': card_size !== 'small', 'max-one-line': card_size === 'small' }"><span class="title-uploader">{{card_size !== 'small' && file_obj.uploader ? file_obj.uploader + ':' : ''}}</span>{{!is_playlist ? file_obj.title : file_obj.name}}</span>
             <span *ngIf="loading" class="title-loading"><content-loader [backgroundColor]="theme.ghost_primary" [foregroundColor]="theme.ghost_secondary" viewBox="0 0 250 30"><svg:rect x="0" y="0" rx="3" ry="3" width="250" height="30" /></content-loader></span>
         </div>
     </mat-card>
