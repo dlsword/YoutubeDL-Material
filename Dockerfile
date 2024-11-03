@@ -81,6 +81,9 @@ RUN npm install -g pm2 && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /app
+#install python pkg for downloader, #evaluate js in python
+RUN pip install py_mini_racer
+
 # User 1000 already exist from base image
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffmpeg", "/usr/local/bin/ffmpeg" ]
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffprobe", "/usr/local/bin/ffprobe" ]
