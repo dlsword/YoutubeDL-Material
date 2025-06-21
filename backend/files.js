@@ -139,7 +139,7 @@ exports.addMetadataPropertyToDB = async (property_key) => {
 exports.createPlaylist = async (playlist_name, uids, user_uid = null) => {
     const first_video = await exports.getVideo(uids[0]);
     const thumbnailToUse = first_video['thumbnailURL'];
-    
+
     let new_playlist = {
         name: playlist_name,
         uids: uids,
@@ -152,7 +152,7 @@ exports.createPlaylist = async (playlist_name, uids, user_uid = null) => {
     new_playlist.user_uid = user_uid ? user_uid : undefined;
 
     await db_api.insertRecordIntoTable('playlists', new_playlist);
-    
+
     const duration = await exports.calculatePlaylistDuration(new_playlist);
     await db_api.updateRecord('playlists', {id: new_playlist.id}, {duration: duration});
 
@@ -322,11 +322,24 @@ exports.getVideo = async (file_uid) => {
 }
 
 exports.getAllFiles = async (sort, range, text_search, file_type_filter, favorite_filter, sub_id, uuid) => {
-    const filter_obj = {user_uid: uuid};
+    const filter_obj = {};
+
+    // 只有在多用户模式下且提供了uuid时才过滤user_uid
+    const multiUserMode = config_api.getConfigItem('ytdl_multi_user_mode');
+    if (multiUserMode && uuid) {
+        filter_obj.user_uid = uuid;
+    }
+
     const regex = true;
     if (text_search) {
         if (regex) {
-            filter_obj['title'] = {$regex: `.*${text_search}.*`, $options: 'i'};
+            // 使用 $or 操作符匹配多个字段
+            filter_obj['$or'] = [
+                { 'title': { $regex: `.*${text_search}.*`, $options: 'i' } },
+                { 'description': { $regex: `.*${text_search}.*`, $options: 'i' } },
+                { 'id': { $regex: `.*${text_search}.*`, $options: 'i' } },  // filename
+                { 'uploader': { $regex: `.*${text_search}.*`, $options: 'i' } }  // 上传者
+            ];
         } else {
             filter_obj['$text'] = { $search: utils.createEdgeNGrams(text_search) };
         }
@@ -342,7 +355,7 @@ exports.getAllFiles = async (sort, range, text_search, file_type_filter, favorit
 
     if (file_type_filter === 'audio_only') filter_obj['isAudio'] = true;
     else if (file_type_filter === 'video_only') filter_obj['isAudio'] = false;
-    
+
     const files = JSON.parse(JSON.stringify(await db_api.getRecords('files', filter_obj, false, sort, range, text_search)));
     const file_count = await db_api.getRecords('files', filter_obj, true);
 

@@ -71,7 +71,7 @@ const tables = {
 
 const tables_list = Object.keys(tables);
 
-let using_local_db = null; 
+let using_local_db = null;
 
 function setDB(input_db, input_users_db) {
     db = input_db; users_db = input_users_db;
@@ -115,7 +115,7 @@ exports.connectToDB = async (retries = 5, no_fallback = false, custom_connection
             }
         }
     }
-    
+
     if (no_fallback) {
         logger.error('Failed to connect to MongoDB. Verify your connection string is valid.');
         return;
@@ -306,7 +306,7 @@ exports.bulkInsertRecordsIntoTable = async (table, docs) => {
 
     // not a necessary function as insertRecords does the same thing but gives us more control on batch size if needed
     const table_collection = database.collection(table);
-        
+
     let bulk = table_collection.initializeOrderedBulkOp(); // Initialize the Ordered Batch
 
     for (let i = 0; i < docs.length; i++) {
@@ -334,7 +334,12 @@ exports.getRecords = async (table, filter_obj = null, return_count = false, sort
     if (using_local_db) {
         let cursor = filter_obj ? exports.applyFilterLocalDB(local_db.get(table), filter_obj, 'filter').value() : local_db.get(table).value();
         if (sort) {
-            cursor = cursor.sort((a, b) => (a[sort['by']] > b[sort['by']] ? sort['order'] : sort['order']*-1));
+            if (sort['by'] === 'random') {
+                // 随机排序
+                cursor = cursor.sort(() => Math.random() - 0.5);
+            } else {
+                cursor = cursor.sort((a, b) => (a[sort['by']] > b[sort['by']] ? sort['order'] : sort['order']*-1));
+            }
         }
         if (range) {
             cursor = cursor.slice(range[0], range[1]);
@@ -344,7 +349,22 @@ exports.getRecords = async (table, filter_obj = null, return_count = false, sort
 
     const cursor = filter_obj ? database.collection(table).find(filter_obj) : database.collection(table).find();
     if (sort) {
-        cursor.sort({[sort['by']]: sort['order']});
+        if (sort['by'] === 'random') {
+            // 对于 MongoDB，使用聚合管道实现随机排序
+            const pipeline = [];
+            if (filter_obj) {
+                pipeline.push({ $match: filter_obj });
+            }
+            pipeline.push({ $sample: { size: 1000 } }); // 先随机采样，然后应用范围
+            const randomResults = await database.collection(table).aggregate(pipeline).toArray();
+
+            if (range) {
+                return !return_count ? randomResults.slice(range[0], range[1]) : randomResults.length;
+            }
+            return !return_count ? randomResults : randomResults.length;
+        } else {
+            cursor.sort({[sort['by']]: sort['order']});
+        }
     }
     if (range) {
         cursor.skip(range[0]).limit(range[1] - range[0]);
@@ -422,7 +442,7 @@ exports.bulkUpdateRecordsByKey = async (table, key_label, update_obj) => {
     }
 
     const table_collection = database.collection(table);
-        
+
     let bulk = table_collection.initializeOrderedBulkOp(); // Initialize the Ordered Batch
 
     const item_ids_to_update = Object.keys(update_obj);
@@ -481,10 +501,10 @@ exports.removeRecord = async (table, filter_obj) => {
 //     }
 
 //     const table_collection = database.collection(table);
-        
+
 //     let bulk = table_collection.initializeOrderedBulkOp(); // Initialize the Ordered Batch
 
-//     const item_ids_to_remove = 
+//     const item_ids_to_remove =
 
 //     for (let i = 0; i < item_ids_to_update.length; i++) {
 //         const item_id_to_update = item_ids_to_update[i];
@@ -516,10 +536,10 @@ exports.findDuplicatesByKey = async (table, key) => {
         }
         return duplicates;
     }
-    
+
     const duplicated_values = await database.collection(table).aggregate([
         {"$group" : { "_id": `$${key}`, "count": { "$sum": 1 } } },
-        {"$match": {"_id" :{ "$ne" : null } , "count" : {"$gt": 1} } }, 
+        {"$match": {"_id" :{ "$ne" : null } , "count" : {"$gt": 1} } },
         {"$project": {[key] : "$_id", "_id" : 0} }
     ]).toArray();
 
@@ -617,7 +637,7 @@ exports.generateJSONTables = async (db_json, users_json) => {
     }
 
     const tables_obj = {};
-    
+
     // TODO: use create*Records funcs to strip unnecessary properties
     tables_obj.files = createFilesRecords(files, subscriptions);
     tables_obj.playlists = playlists;
@@ -626,7 +646,7 @@ exports.generateJSONTables = async (db_json, users_json) => {
     tables_obj.users = createUsersRecords(users);
     tables_obj.roles = createRolesRecords(users_json['roles']);
     tables_obj.downloads = createDownloadsRecords(db_json['downloads'])
-    
+
     return tables_obj;
 }
 
@@ -638,7 +658,7 @@ exports.importJSONToDB = async (db_json, users_json) => {
     const tables_obj = await exports.generateJSONTables(db_json, users_json);
 
     const table_keys = Object.keys(tables_obj);
-    
+
     let success = true;
     for (let i = 0; i < table_keys.length; i++) {
         const table_key = table_keys[i];

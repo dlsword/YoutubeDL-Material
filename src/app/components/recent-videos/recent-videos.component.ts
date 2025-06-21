@@ -162,6 +162,7 @@ export class RecentVideosComponent implements OnInit {
 
   onSearchInputChanged(newvalue: string): void {
     this.normal_files_received = false;
+    this.search_text = newvalue;
     this.searchChangedSubject.next(newvalue);
   }
 
