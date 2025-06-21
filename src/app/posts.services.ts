@@ -120,6 +120,7 @@ import { isoLangs } from './dialogs/user-profile-dialog/locales_list';
 import { Title } from '@angular/platform-browser';
 import { MatDrawerMode } from '@angular/material/sidenav';
 import { environment } from '../environments/environment';
+import { map } from 'rxjs/operators';
 
 @Injectable()
 export class PostsService implements CanActivate {
@@ -386,9 +387,16 @@ export class PostsService implements CanActivate {
         return this.http.post<GetAllFilesResponse>(this.path + 'getAllFiles', body, this.httpOptions);
     }
 
-    updateFile(uid: string, change_obj: Object) {
-        const body: UpdateFileRequest = {uid: uid, change_obj: change_obj};
-        return this.http.post<SuccessObject>(this.path + 'updateFile', body, this.httpOptions);
+    updateFile(uidOrFile: string | any, change_obj?: Object) {
+        if (typeof uidOrFile === 'string') {
+            // Original two-parameter case
+            const body = {uid: uidOrFile, change_obj: change_obj};
+            return this.http.post<SuccessObject>(this.path + 'updateFile', body, this.httpOptions);
+        } else {
+            // New single object case
+            const body = {uid: uidOrFile.uid, change_obj: uidOrFile};
+            return this.http.post<SuccessObject>(this.path + 'updateFile', body, this.httpOptions);
+        }
     }
 
     downloadFileFromServer(uid: string, uuid: string = null) {
@@ -525,7 +533,7 @@ export class PostsService implements CanActivate {
             audioOnly: audioOnly, customArgs: customArgs, customFileOutput: customFileOutput};
         return this.http.post<SubscribeResponse>(this.path + 'subscribe', body, this.httpOptions);
     }
-    
+
     addFileToPlaylist(playlist_id, file_uid) {
         const body: AddFileToPlaylistRequest = {playlist_id: playlist_id, file_uid: file_uid}
         return this.http.post<SuccessObject>(this.path + 'addFileToPlaylist', body, this.httpOptions);
@@ -902,7 +910,7 @@ export class PostsService implements CanActivate {
         return this.http.post<SuccessObject>(this.path + 'deleteNotification', body,
                                                                     this.httpOptions);
     }
-    
+
     deleteAllNotifications(): Observable<SuccessObject> {
         return this.http.post<SuccessObject>(this.path + 'deleteAllNotifications', {},
                                                                     this.httpOptions);
@@ -912,6 +920,12 @@ export class PostsService implements CanActivate {
         this.snackBar.open(message, action, {
           duration: 2000,
         });
+    }
+
+    checkPathExists(path: string): Observable<boolean> {
+        return this.http.get<{exists: boolean}>(`${this.path}checkPath?path=${encodeURIComponent(path)}`, this.httpOptions).pipe(
+            map(res => res.exists)
+        );
     }
 
 }

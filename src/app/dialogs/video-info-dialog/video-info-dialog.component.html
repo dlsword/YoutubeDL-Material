@@ -72,7 +72,12 @@
     </div>
     <div class="info-item">
         <div class="info-item-label"><strong><ng-container i18n="Video path property">Path:</ng-container>&nbsp;</strong></div>
-        <div class="info-item-value">{{new_file.path ? new_file.path : 'N/A'}}</div>
+        <div class="info-item-value">
+            <mat-form-field *ngIf="editing" class="path-field">
+                <input [(ngModel)]="new_file.path" matInput [disabled]="!editing">
+            </mat-form-field>
+            <span *ngIf="!editing">{{new_file.path ? new_file.path : 'N/A'}}</span>
+        </div>
     </div>
 
 </mat-dialog-content>

@@ -49,15 +49,55 @@ export class VideoInfoDialogComponent implements OnInit {
   }
 
   saveChanges(): void {
-    const change_obj = {};
-    const keys = Object.keys(this.new_file);
-    keys.forEach(key => {
-      if (this.file[key] !== this.new_file[key]) change_obj[key] = this.new_file[key];
-    });
+    console.log('saveChanges called', this.new_file);
+    console.log('metadataChanged:', this.metadataChanged());
+    console.log('file.path:', this.file.path);
+    console.log('new_file.path:', this.new_file.path);
+    console.log('paths are different:', this.file.path !== this.new_file.path);
 
-    this.postsService.updateFile(this.file.uid, change_obj).subscribe(res => {
-      this.getFile();
-    });
+    if (!this.metadataChanged()) return;
+
+    // Validate path if it was changed
+    if (this.file.path !== this.new_file.path) {
+      console.log('Path changed, checking if exists:', this.new_file.path);
+      // Check if the new path exists
+      this.postsService.checkPathExists(this.new_file.path).subscribe(
+        exists => {
+          console.log('Path exists check result:', exists);
+          if (!exists) {
+            this.postsService.openSnackBar($localize`Warning: The specified path does not exist.`, 'Dismiss');
+          }
+          this.updateFile();
+        },
+        err => {
+          console.error('Failed to check path:', err);
+          this.postsService.openSnackBar($localize`Error checking path.`, 'Dismiss');
+        }
+      );
+    } else {
+      console.log('Path not changed, updating file directly');
+      this.updateFile();
+    }
+  }
+
+  private updateFile(): void {
+    this.postsService.updateFile(this.new_file.uid, this.new_file).subscribe(
+      res => {
+        console.log('Update file response:', res);
+        if (res['success']) {
+          // Update successful, refresh the file data
+          this.getFile();
+          this.editing = false;
+          this.postsService.openSnackBar($localize`File updated successfully.`, 'Dismiss');
+        } else {
+          this.postsService.openSnackBar($localize`Failed to update file.`, 'Dismiss');
+        }
+      },
+      err => {
+        console.error('Failed to update file:', err);
+        this.postsService.openSnackBar($localize`Failed to update file.`, 'Dismiss');
+      }
+    );
   }
 
   getFile(): void {
@@ -89,7 +129,8 @@ export class VideoInfoDialogComponent implements OnInit {
     return option.uid === value.uid;
   }
 
-  metadataChanged(): boolean { 
+  metadataChanged(): boolean {
+    if (!this.initialized) return false;
     return JSON.stringify(this.file) !== JSON.stringify(this.new_file);
   }
 
