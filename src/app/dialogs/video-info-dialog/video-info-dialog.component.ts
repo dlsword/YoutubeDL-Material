@@ -28,6 +28,7 @@ export class VideoInfoDialogComponent implements OnInit {
     this.filesize = filesize;
     if (this.data) {
       this.initializeFile(this.data.file);
+      this.editing = true;
     }
     this.postsService.reloadCategories();
     this.write_access = !this.file.user_uid || (this.file.user_uid && this.postsService.user?.uid === this.file.user_uid);
