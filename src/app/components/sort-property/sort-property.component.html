@@ -8,7 +8,7 @@
             </mat-select>
         </mat-form-field>
     </div>
-    <div class="sort-dir-div">
+    <div class="sort-dir-div" *ngIf="sortProperty !== 'random'">
         <button (click)="toggleModeChange()" mat-icon-button><mat-icon>{{descendingMode ? 'arrow_downward' : 'arrow_upward'}}</mat-icon></button>
     </div>
 </div>

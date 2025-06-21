@@ -167,8 +167,13 @@ export class RecentVideosComponent implements OnInit {
 
   sortOptionChanged(value: Sort): void {
     localStorage.setItem('sort_property', value['by']);
-    localStorage.setItem('recent_videos_sort_order', value['order'] === -1 ? 'descending' : 'ascending');
-    this.descendingMode = value['order'] === -1;
+
+    // 对于随机排序，不保存方向设置
+    if (value['by'] !== 'random') {
+      localStorage.setItem('recent_videos_sort_order', value['order'] === -1 ? 'descending' : 'ascending');
+      this.descendingMode = value['order'] === -1;
+    }
+
     this.sortProperty = value['by'];
 
     this.getAllFiles();

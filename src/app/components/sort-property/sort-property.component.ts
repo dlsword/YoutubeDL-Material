@@ -27,9 +27,13 @@ export class SortPropertyComponent {
     'duration': {
       'key': 'duration',
       'label': $localize`Duration`
+    },
+    'random': {
+      'key': 'random',
+      'label': $localize`Random`
     }
   };
-  
+
   @Input() sortProperty = 'registered';
   @Input() descendingMode = true;
 
@@ -46,9 +50,18 @@ export class SortPropertyComponent {
     if (!this.sortProperty || !this.sortProperties[this.sortProperty]) {
       return;
     }
-    this.sortOptionChanged.emit({
-      by: this.sortProperty,
-      order: this.descendingMode ? -1 : 1
-    });
+
+    // 对于随机排序，使用特殊的排序参数
+    if (this.sortProperty === 'random') {
+      this.sortOptionChanged.emit({
+        by: 'random',
+        order: 0  // 随机排序不需要方向
+      });
+    } else {
+      this.sortOptionChanged.emit({
+        by: this.sortProperty,
+        order: this.descendingMode ? -1 : 1
+      });
+    }
   }
 }
