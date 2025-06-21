@@ -70,7 +70,7 @@
                     <!-- The following for loop can be optimized but it requires a pipe https://stackoverflow.com/a/35703364/8088021 -->
                     <mat-button-toggle class="media-box" cdkDrag *ngFor="let file of (reverse_order ? selected_data_objs.slice().reverse() : selected_data_objs); let i = index" [checked]="false"><div><div class="playlist-item-text">{{file.title}}</div> <button (click)="removeSelectedFile(i)" class="remove-item-button" mat-icon-button><mat-icon>cancel</mat-icon></button></div></mat-button-toggle>
                 </mat-button-toggle-group>
-                
+
                 <div style="margin-top: 20px;" *ngIf="!selected_data.length">
                     <h4 style="text-align: center;">No files selected!</h4>
                 </div>
@@ -88,10 +88,10 @@
                                 <div class="col-2">{{file.registered | date:'shortDate'}}</div>
                             </div>
                         </div>
-                        
+
                     </mat-list-option>
                 </mat-selection-list>
-        
+
                 <ng-container *ngIf="!normal_files_received && loading_files && loading_files.length > 0">
                     <mat-selection-list *ngIf="!normal_files_received">
                         <mat-list-option *ngFor="let file of paged_data">
@@ -103,10 +103,11 @@
         </mat-tab-group>
     </div>
 
-    <div style="position: relative;" *ngIf="usePaginator && selectedIndex > 0">
-        <mat-paginator class="paginator" #paginator (page)="pageChangeEvent($event)" [length]="file_count"
-                [pageSize]="pageSize"
-                [pageSizeOptions]="[50, 5, 10, 25, 100, this.paged_data && this.paged_data.length > 100 ? this.paged_data.length : 250]">
-        </mat-paginator>
+    <!-- 滚动到顶部按钮 -->
+    <div class="text-center mt-3 mb-3" *ngIf="usePaginator">
+        <button mat-raised-button color="primary" (click)="scrollToTopPaginator()" class="scroll-to-top-btn">
+            <mat-icon>keyboard_arrow_up</mat-icon>
+            回到顶部
+        </button>
     </div>
 </div>

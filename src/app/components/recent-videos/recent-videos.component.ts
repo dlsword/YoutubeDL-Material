@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ElementRef } from '@angular/core';
 import { PostsService } from 'app/posts.services';
 import { Router } from '@angular/router';
 import { DatabaseFile, FileType, FileTypeFilter, Sort } from '../../../api-types';
@@ -69,10 +69,11 @@ export class RecentVideosComponent implements OnInit {
   selectedFilters = [];
 
   sortProperty = 'registered';
-  
+
   playlists = null;
 
-  @ViewChild('paginator') paginator: MatPaginator
+  @ViewChild('paginator') paginator: MatPaginator;
+  @ViewChild('paginator', { read: ElementRef }) paginatorElement: ElementRef;
 
   constructor(public postsService: PostsService, private router: Router) {
     // get cached file count
@@ -134,9 +135,9 @@ export class RecentVideosComponent implements OnInit {
       }
     });
 
-    
+
     this.selected_data = this.defaultSelected.map(file => file.uid);
-    this.selected_data_objs = this.defaultSelected;    
+    this.selected_data_objs = this.defaultSelected;
 
     this.searchChangedSubject
       .debounceTime(500)
@@ -169,7 +170,7 @@ export class RecentVideosComponent implements OnInit {
     localStorage.setItem('recent_videos_sort_order', value['order'] === -1 ? 'descending' : 'ascending');
     this.descendingMode = value['order'] === -1;
     this.sortProperty = value['by'];
-    
+
     this.getAllFiles();
   }
 
@@ -248,7 +249,7 @@ export class RecentVideosComponent implements OnInit {
     localStorage.setItem('player_navigator', this.router.url);
     if (file.sub_id) {
         !new_tab ? this.router.navigate(['/player', {uid: file.uid,
-                                        type: file.isAudio ? 'audio' : 'video'}]) 
+                                        type: file.isAudio ? 'audio' : 'video'}])
                  : window.open(`/#/player;uid=${file.uid};type=${file.isAudio ? 'audio' : 'video'}`);
     } else {
       // normal files
@@ -424,5 +425,15 @@ export class RecentVideosComponent implements OnInit {
   toggleFavorite(file_obj): void {
     file_obj.favorite = !file_obj.favorite;
     this.postsService.updateFile(file_obj.uid, {favorite: file_obj.favorite}).subscribe(res => {});
+  }
+
+  scrollToTopPaginator(): void {
+    // 滚动到 paginator 元素的位置
+    if (this.paginatorElement) {
+      this.paginatorElement.nativeElement.scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+    }
   }
 }
