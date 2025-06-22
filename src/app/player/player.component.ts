@@ -30,6 +30,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
   playlist_updating = false;
 
   show_player = false;
+  showDbInfo = false; // 控制数据库信息显示
 
   currentIndex = 0;
   currentItem: IMedia = null;
@@ -104,6 +105,96 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
               private cdr: ChangeDetectorRef) {
 
   }
+
+  // 切换数据库信息显示
+  toggleDbInfo(): void {
+    this.showDbInfo = !this.showDbInfo;
+  }
+
+  // 获取所有数据库字段
+  getAllDbFields(): Array<{key: string, value: any, type: string}> {
+    if (!this.db_file) {
+      return [];
+    }
+
+    const fields: Array<{key: string, value: any, type: string}> = [];
+
+    Object.keys(this.db_file).forEach(key => {
+      const value = this.db_file[key];
+      let type: string = typeof value;
+
+      if (value === null) {
+        type = 'null';
+      } else if (Array.isArray(value)) {
+        type = 'array';
+      } else if (value instanceof Date) {
+        type = 'date';
+      }
+
+      fields.push({
+        key: key,
+        value: value,
+        type: type
+      });
+    });
+
+    // 按字段名排序
+    return fields.sort((a, b) => a.key.localeCompare(b.key));
+  }
+
+  // 格式化值显示
+  formatValue(value: any, type: string): string {
+    if (value === null || value === undefined) {
+      return 'null';
+    }
+
+    switch (type) {
+      case 'object':
+        return JSON.stringify(value, null, 2);
+      case 'array':
+        return JSON.stringify(value, null, 2);
+      case 'boolean':
+        return value ? 'true' : 'false';
+      case 'number':
+        return value.toString();
+      case 'string':
+        return value;
+      default:
+        return String(value);
+    }
+  }
+
+  // 获取字段类型颜色
+  getTypeColor(type: string): string {
+    switch (type) {
+      case 'string':
+        return '#4CAF50';
+      case 'number':
+        return '#2196F3';
+      case 'boolean':
+        return '#FF9800';
+      case 'object':
+        return '#9C27B0';
+      case 'array':
+        return '#E91E63';
+      case 'null':
+        return '#757575';
+      default:
+        return '#607D8B';
+    }
+  }
+
+  // 判断是否为长值
+  isLongValue(field: {key: string, value: any, type: string}): boolean {
+    if (field.type === 'object' || field.type === 'array') {
+      return true;
+    }
+    if (field.type === 'string' && field.value && field.value.length > 100) {
+      return true;
+    }
+    return false;
+  }
+
   processConfig(): void {
     this.baseStreamPath = this.postsService.path;
     this.audioFolderPath = this.postsService.config['Downloader']['path-audio'];
@@ -116,7 +207,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       this.getPlaylistFiles();
     } else if (this.uid) {
       this.getFile();
-    } 
+    }
 
     if (this.url) {
       // if a url is given, just stream the URL
@@ -183,7 +274,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
-  parseFileNames(): void {    
+  parseFileNames(): void {
     this.playlist = [];
     for (let i = 0; i < this.uids.length; i++) {
       let file_obj = null;
@@ -195,7 +286,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
         file_obj = this.db_file;
       }
 
-      const mime_type = file_obj.isAudio ? 'audio/mp3' : 'video/mp4' 
+      const mime_type = file_obj.isAudio ? 'audio/mp3' : 'video/mp4'
 
       const baseLocation = 'stream/';
       let fullLocation = this.baseStreamPath + baseLocation + `?test=test&uid=${file_obj['uid']}`;
@@ -203,7 +294,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.postsService.isLoggedIn) {
         fullLocation += `&jwt=${this.postsService.token}`;
       }
-      
+
       if (this.uuid) {
         fullLocation += `&uuid=${this.uuid}`;
       }
@@ -358,7 +449,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     });
   }
-  
+
   openFileInfoDialog(): void {
     let file_obj = this.db_file;
     const original_uid = this.currentItem.uid;
@@ -378,7 +469,7 @@ export class PlayerComponent implements OnInit, AfterViewInit, OnDestroy {
       else if (this.db_playlist) {
         const idx = this.getPlaylistFileIndexUID(original_uid);
         this.file_objs[idx] = dialogRef.componentInstance.file;
-      } 
+      }
     });
   }
 

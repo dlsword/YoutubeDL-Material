@@ -94,3 +94,117 @@
     right: 20px;
     bottom: 75px;
 }
+
+/* 数据库信息区域样式 */
+.db-info-section {
+  margin: 20px 0;
+  padding: 0 20px;
+}
+
+.db-info-section mat-card {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+}
+
+.db-info-section mat-card-header {
+  background-color: #e9ecef;
+  margin: -16px -16px 16px -16px;
+  padding: 16px;
+  border-radius: 4px 4px 0 0;
+}
+
+.db-info-section mat-card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.db-info-section mat-card-subtitle {
+  margin: 8px 0 0 0;
+  font-size: 14px;
+  color: #6c757d;
+}
+
+.db-fields-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.db-field-item {
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 12px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.field-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f1f3f4;
+}
+
+.field-name {
+  font-weight: 600;
+  font-size: 14px;
+  color: #212529;
+  font-family: 'Courier New', monospace;
+}
+
+.field-type {
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.field-value {
+  font-size: 13px;
+  line-height: 1.4;
+  color: #495057;
+  word-break: break-word;
+}
+
+.field-value.long-value {
+  max-height: 200px;
+  overflow-y: auto;
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-radius: 4px;
+  border: 1px solid #e9ecef;
+}
+
+.field-value pre {
+  margin: 0;
+  white-space: pre-wrap;
+  font-family: 'Courier New', monospace;
+  font-size: 12px;
+}
+
+/* 响应式设计 */
+@media (max-width: 768px) {
+  .db-fields-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .db-info-section {
+    padding: 0 10px;
+  }
+
+  .field-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+}

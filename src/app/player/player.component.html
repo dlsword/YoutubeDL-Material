@@ -42,6 +42,9 @@
                                         <button (click)="downloadFile()" [disabled]="downloading" mat-icon-button><mat-icon>cloud_download</mat-icon></button>
                                         <mat-spinner *ngIf="downloading" class="spinner" [diameter]="35"></mat-spinner>
                                         <button *ngIf="!postsService.isLoggedIn || postsService.permissions.includes('sharing')" (click)="openShareDialog()" mat-icon-button><mat-icon>share</mat-icon></button>
+                                        <button (click)="toggleDbInfo()" mat-icon-button title="显示/隐藏数据库信息">
+                                            <mat-icon>{{showDbInfo ? 'expand_less' : 'expand_more'}}</mat-icon>
+                                        </button>
                                     </span>
                                     <ng-container *ngIf="db_file || playlist[currentIndex]"></ng-container>
                                     <button (click)="openFileInfoDialog()" *ngIf="db_file || db_playlist" mat-icon-button><mat-icon>info</mat-icon></button>
@@ -50,6 +53,38 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- 数据库信息展示区域 -->
+                    <div *ngIf="db_file && showDbInfo" class="db-info-section">
+                        <mat-card>
+                            <mat-card-header>
+                                <mat-card-title>
+                                    <mat-icon>database</mat-icon>
+                                    数据库字段信息 ({{getAllDbFields().length}} 个字段)
+                                </mat-card-title>
+                                <mat-card-subtitle>
+                                    UID: {{db_file.uid}} | 类型: {{db_file.isAudio ? '音频' : '视频'}}
+                                </mat-card-subtitle>
+                            </mat-card-header>
+                            <mat-card-content>
+                                <div class="db-fields-grid">
+                                    <div class="db-field-item" *ngFor="let field of getAllDbFields()">
+                                        <div class="field-header">
+                                            <span class="field-name">{{field.key}}</span>
+                                            <span class="field-type" [style.background-color]="getTypeColor(field.type)">
+                                                {{field.type}}
+                                            </span>
+                                        </div>
+                                        <div class="field-value" [ngClass]="{'long-value': isLongValue(field)}">
+                                            <pre *ngIf="field.type === 'object' || field.type === 'array'">{{formatValue(field.value, field.type)}}</pre>
+                                            <span *ngIf="field.type !== 'object' && field.type !== 'array'">{{formatValue(field.value, field.type)}}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </mat-card-content>
+                        </mat-card>
+                    </div>
+
                     <div style="height: fit-content; width: 100%; margin-top: 10px;">
                         <mat-button-toggle-group cdkDropList [cdkDropListSortingDisabled]="true" (cdkDropListDropped)="drop($event)" style="width: 80%; left: 9%" vertical name="videoSelect" aria-label="Video Select" #group="matButtonToggleGroup">
                             <mat-button-toggle cdkDrag *ngFor="let playlist_item of playlist; let i = index" [checked]="currentItem.title === playlist_item.title" (click)="onClickPlaylistItem(playlist_item, i)" class="toggle-button" [value]="playlist_item.title">{{playlist_item.label}}</mat-button-toggle>
