@@ -429,8 +429,30 @@ export class RecentVideosComponent implements OnInit {
   }
 
   toggleFavorite(file_obj): void {
-    file_obj.favorite = !file_obj.favorite;
-    this.postsService.updateFile(file_obj.uid, {favorite: file_obj.favorite}).subscribe(res => {});
+    this.postsService.updateFile(file_obj.uid, {favorite: !file_obj.favorite}).subscribe(res => {
+      if (res.success) {
+        file_obj.favorite = !file_obj.favorite;
+      }
+    });
+  }
+
+  // 处理克隆文件
+  handleCloneFile(clonedFile: DatabaseFile): void {
+    this.postsService.cloneFile(clonedFile).subscribe(
+      (res) => {
+        if (res['success']) {
+          this.postsService.openSnackBar('文件克隆成功！', '关闭');
+          // 刷新文件列表
+          this.getAllFiles();
+        } else {
+          this.postsService.openSnackBar('文件克隆失败：' + (res['error'] || '未知错误'), '关闭');
+        }
+      },
+      (error) => {
+        console.error('克隆文件失败:', error);
+        this.postsService.openSnackBar('文件克隆失败：网络错误', '关闭');
+      }
+    );
   }
 
   scrollToTopPaginator(): void {

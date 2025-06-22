@@ -10,6 +10,7 @@ import localeDE from '@angular/common/locales/de';
 import localeZH from '@angular/common/locales/zh';
 import localeNB from '@angular/common/locales/nb';
 import { DatabaseFile } from 'api-types';
+import { PostsService } from 'app/posts.services';
 
 registerLocaleData(localeGB);
 registerLocaleData(localeFR);
@@ -56,6 +57,7 @@ export class UnifiedFileCardComponent implements OnInit {
   @Output() deleteFile = new EventEmitter<any>();
   @Output() addFileToPlaylist = new EventEmitter<any>();
   @Output() editPlaylist = new EventEmitter<any>();
+  @Output() cloneFile = new EventEmitter<DatabaseFile>();
 
 
   @ViewChild(MatMenuTrigger) contextMenu: MatMenuTrigger;
@@ -68,7 +70,7 @@ export class UnifiedFileCardComponent implements OnInit {
     big: 250x200
   */
 
-  constructor(private dialog: MatDialog) { }
+  constructor(private dialog: MatDialog, private postsService: PostsService) { }
 
   ngOnInit(): void {
     if (!this.loading) {
@@ -123,6 +125,40 @@ export class UnifiedFileCardComponent implements OnInit {
       playlist: this.file_obj,
       index: this.index
     });
+  }
+
+  // 克隆视频文件
+  cloneVideoFile() {
+    if (!this.file_obj) {
+      this.postsService.openSnackBar('无法克隆：文件信息不存在', '关闭');
+      return;
+    }
+
+    // 创建克隆文件对象
+    const clonedFile = {
+      ...this.file_obj,
+      uid: this.generateNewUID(),
+      title: `${this.file_obj.title} (克隆)`,
+      registered: new Date().toISOString(),
+      local_view_count: 0,
+      favorite: false,
+      auto: false,
+      sub_id: null // 克隆文件不属于任何订阅
+    };
+
+    // 移除一些不应该克隆的字段
+    delete clonedFile._id;
+    delete clonedFile.id;
+
+    // 发送克隆事件
+    this.cloneFile.emit(clonedFile);
+
+    this.postsService.openSnackBar('视频文件已克隆！', '关闭');
+  }
+
+  // 生成新的UID
+  private generateNewUID(): string {
+    return 'cloned_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
   }
 
   onRightClick(event) {

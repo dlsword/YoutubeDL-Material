@@ -539,6 +539,11 @@ export class PostsService implements CanActivate {
         return this.http.post<SuccessObject>(this.path + 'addFileToPlaylist', body, this.httpOptions);
     }
 
+    // 克隆文件
+    cloneFile(fileData: any) {
+        return this.http.post<SuccessObject>(this.path + 'cloneFile', fileData, this.httpOptions);
+    }
+
     // categories
 
     getAllCategories() {
