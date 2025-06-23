@@ -2138,3 +2138,51 @@ app.use(function(req, res, next) {
 let public_dir = path.join(__dirname, 'public');
 
 app.use(express.static(public_dir));
+
+// 克隆文件API
+app.post('/api/cloneFile', optionalJwt, async (req, res) => {
+    try {
+        const fileData = req.body;
+        const uuid = req.isAuthenticated() ? req.user.uid : null;
+
+        // 验证必要字段
+        if (!fileData.uid || !fileData.title) {
+            return res.send({
+                success: false,
+                error: '缺少必要字段'
+            });
+        }
+
+        // 设置用户UID（如果是多用户模式）
+        if (uuid) {
+            fileData.user_uid = uuid;
+        }
+
+        // 设置注册时间
+        fileData.registered = new Date().toISOString();
+
+        // 保存到数据库
+        const success = await db_api.insertRecordIntoTable('files', fileData);
+
+        if (success) {
+            // 触发文件变更事件
+            // files_api.files_changed.next(true);
+
+            res.send({
+                success: true,
+                message: '文件克隆成功'
+            });
+        } else {
+            res.send({
+                success: false,
+                error: '保存到数据库失败'
+            });
+        }
+    } catch (error) {
+        logger.error('克隆文件失败:', error);
+        res.send({
+            success: false,
+            error: '服务器内部错误'
+        });
+    }
+});

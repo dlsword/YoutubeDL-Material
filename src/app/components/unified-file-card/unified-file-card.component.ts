@@ -11,6 +11,7 @@ import localeZH from '@angular/common/locales/zh';
 import localeNB from '@angular/common/locales/nb';
 import { DatabaseFile } from 'api-types';
 import { PostsService } from 'app/posts.services';
+import { FileType } from 'api-types';
 
 registerLocaleData(localeGB);
 registerLocaleData(localeFR);
@@ -159,6 +160,65 @@ export class UnifiedFileCardComponent implements OnInit {
   // 生成新的UID
   private generateNewUID(): string {
     return 'cloned_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+  }
+
+  // 重新下载文件
+  redownloadFile() {
+    if (!this.file_obj || !this.file_obj.url) {
+      this.postsService.openSnackBar('无法重新下载：文件URL不存在', '关闭');
+      return;
+    }
+
+    // 验证URL格式
+    try {
+      new URL(this.file_obj.url);
+    } catch (e) {
+      this.postsService.openSnackBar('无法重新下载：URL格式无效', '关闭');
+      return;
+    }
+
+    // 确定文件类型
+    const fileType: FileType = this.file_obj.isAudio ? FileType.AUDIO : FileType.VIDEO;
+
+    // 显示开始下载的消息
+    this.postsService.openSnackBar(`正在添加重新下载任务: ${this.file_obj.title}`, '关闭');
+
+    // 使用默认质量设置重新下载
+    this.postsService.downloadFile(
+      this.file_obj.url,
+      fileType,
+      '', // 默认质量
+      '', // 自定义质量配置
+      null, // 自定义参数
+      null, // 额外参数
+      null, // 自定义输出
+      null, // YouTube用户名
+      null, // YouTube密码
+      null  // 裁剪设置
+    ).subscribe(
+      (response) => {
+        if (response.download) {
+          this.postsService.openSnackBar(`✅ 重新下载已添加到队列: ${this.file_obj.title}`, '关闭');
+        } else {
+          this.postsService.openSnackBar('❌ 重新下载失败：服务器返回空响应', '关闭');
+        }
+      },
+      (error) => {
+        console.error('重新下载错误:', error);
+        let errorMessage = '重新下载失败，请检查网络连接';
+
+        // 根据错误类型提供更具体的消息
+        if (error.status === 400) {
+          errorMessage = '重新下载失败：请求参数错误';
+        } else if (error.status === 403) {
+          errorMessage = '重新下载失败：权限不足';
+        } else if (error.status === 500) {
+          errorMessage = '重新下载失败：服务器内部错误';
+        }
+
+        this.postsService.openSnackBar(`❌ ${errorMessage}`, '关闭');
+      }
+    );
   }
 
   onRightClick(event) {
