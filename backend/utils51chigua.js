@@ -105,7 +105,7 @@ exports.asynDecryptImageFileFrom51Chigua = async (inputFile) => {
   })
 }
 
-exports.decryptImageFileFrom51Chigua = (inputFile) => {
+function decryptImageFileFrom51Chigua (inputFile) {
   if (!fs.existsSync(inputFile)) {
     console.error("❌ 输入文件不存在:", inputFile);
     // process.exit(1);

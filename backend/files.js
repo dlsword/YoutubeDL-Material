@@ -31,7 +31,8 @@ exports.registerFileDB = async (file_path, type, user_uid = null, category = nul
 
     if (file_object.duration === null || file_object.duration === undefined || file_object.duration === 0) {
         logger.info(`File ${file_path} duration is null, checking duration by ffmpeg`);
-        file_object.duration = await utils.getDurationByFFmpeg(file_path);
+        file_object['duration'] = utils.getDurationByFFmpeg(file_path);
+        logger.info(`set File ${file_path} duration to ${file_object['duration']}`);
     }
 
     if (user_uid) file_object['user_uid'] = user_uid;

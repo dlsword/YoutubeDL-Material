@@ -500,6 +500,44 @@ exports.updateLoggerLevel = (new_logger_level) => {
     logger.transports[2].level = new_logger_level;
 }
 
+
+
+/**
+ * 使用FFmpeg获取文件的时长
+ * @param {string} file_path - 文件路径
+ */
+exports.getDurationByFFmpeg =  (file_path) => {
+    // 检查文件是否存在
+    if (!fs.existsSync(file_path)) {
+        logger.warn(`File does not exist: ${file_path}`);
+        return null;
+    }
+
+    // 使用ffmpeg获取文件信息
+    ffmpeg.ffprobe(file_path, (err, metadata) => {
+        if (err) {
+            logger.warn(`Failed to get duration for ${file_path}: ${err.message}`);                
+            return null;
+        }
+
+        try {
+            // 从metadata中获取时长
+            const duration = metadata.format.duration;
+            if (duration && !isNaN(duration)) {
+                const durationInSeconds = parseInt(duration);
+                logger.info(`Duration for ${file_path}: ${durationInSeconds} seconds`);
+                return durationInSeconds;
+            } else {
+                logger.warn(`No valid duration found for ${file_path}`);
+                return null;
+            }
+        } catch (error) {
+            logger.warn(`Error parsing duration for ${file_path}: ${error.message}`);
+            return null;
+        }
+    });
+};
+
 exports.convertFlatObjectToNestedObject = (obj) => {
     const result = {};
     for (const key in obj) {

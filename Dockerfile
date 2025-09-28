@@ -83,6 +83,8 @@ RUN npm install -g pm2 && \
 WORKDIR /app
 #install python pkg for downloader, #evaluate js in python
 RUN pip install py_mini_racer
+RUN pip install ipython
+RUN pip install pymongo
 
 # User 1000 already exist from base image
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffmpeg", "/usr/local/bin/ffmpeg" ]
