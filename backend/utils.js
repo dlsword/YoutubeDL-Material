@@ -150,11 +150,14 @@ exports.getJSONByType = (type, name, customPath, openReadPerms = false) => {
 exports.getDownloadedThumbnail = (file_path) => {
     const file_path_no_extension = exports.removeFileExtension(file_path);
 
+    let jpegPath = file_path_no_extension + '.jpeg';
     let jpgPath = file_path_no_extension + '.jpg';
     let webpPath = file_path_no_extension + '.webp';
     let pngPath = file_path_no_extension + '.png';
 
-    if (fs.existsSync(jpgPath))
+    if (fs.existsSync(jpegPath))
+        return jpegPath;
+    else if (fs.existsSync(jpgPath))
         return jpgPath;
     else if (fs.existsSync(webpPath))
         return webpPath;

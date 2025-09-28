@@ -6,6 +6,7 @@ const config_api = require('./config');
 const db_api = require('./db');
 const archive_api = require('./archive');
 const utils = require('./utils')
+const utils51chigua = require('./utils51chigua')
 const logger = require('./logger');
 
 exports.registerFileDB = async (file_path, type, user_uid = null, category = null, sub_id = null, cropFileSettings = null, file_object = null) => {
@@ -28,6 +29,11 @@ exports.registerFileDB = async (file_path, type, user_uid = null, category = nul
         file_object['duration'] = (cropFileSettings.cropFileEnd || file_object.duration) - cropFileSettings.cropFileStart;
     }
 
+    if (file_object.duration === null || file_object.duration === undefined || file_object.duration === 0) {
+        logger.info(`File ${file_path} duration is null, checking duration by ffmpeg`);
+        file_object.duration = await utils.getDurationByFFmpeg(file_path);
+    }
+
     if (user_uid) file_object['user_uid'] = user_uid;
     if (sub_id) file_object['sub_id'] = sub_id;
 
@@ -36,6 +42,11 @@ exports.registerFileDB = async (file_path, type, user_uid = null, category = nul
     // remove metadata JSON if needed
     if (!config_api.getConfigItem('ytdl_include_metadata')) {
         utils.deleteJSONFile(file_path, type)
+    }
+
+    if(file_obj.uploader.includes('xubblrp.xyz') || file_obj.url.includes('51cg')) {
+        logger.info("decrpt img for 51chigua")
+        await utils51chigua.asynDecryptImageFileFrom51Chigua(file_object['thumbnailPath'])
     }
 
     return file_obj;
