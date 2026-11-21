@@ -1,5 +1,5 @@
 # Fetching our utils
-FROM ubuntu:22.04 AS utils
+FROM ubuntu:24.04 AS utils
 ENV DEBIAN_FRONTEND=noninteractive
 # Use script due local build compability
 COPY docker-utils/*.sh .
@@ -8,9 +8,8 @@ RUN sh ./ffmpeg-fetch.sh
 RUN sh ./fetch-twitchdownloader.sh
 
 
-# Create our Ubuntu 22.04 with node 16.14.2 (that specific version is required as per: https://stackoverflow.com/a/72855258/8088021)
-# Go to 20.04
-FROM ubuntu:22.04 AS base
+# Ubuntu 24.04 provides Python 3.12. Keep Node 16.14.2 for the app.
+FROM ubuntu:24.04 AS base
 ARG TARGETPLATFORM
 ARG DEBIAN_FRONTEND=noninteractive
 ENV UID=1000
@@ -23,9 +22,18 @@ ENV npm_config_cache=/app/.npm
 
 # Use NVM to get specific node version
 ENV NODE_VERSION=16.14.2
-RUN groupadd -g $GID $USER && useradd --system -m -g $USER --uid $UID $USER && \
+# Ubuntu 24.04 images may already have an ubuntu user/group with ID 1000.
+RUN if id ubuntu >/dev/null 2>&1; then \
+        usermod --login "$USER" --home "/home/$USER" --move-home ubuntu && \
+        groupmod --new-name "$USER" ubuntu; \
+    else \
+        groupadd -g "$GID" "$USER" && \
+        useradd --system -m -g "$USER" --uid "$UID" "$USER"; \
+    fi && \
+    test "$(id -u "$USER")" = "$UID" && \
+    test "$(id -g "$USER")" = "$GID" && \
     apt update && \
-    apt install -y --no-install-recommends curl ca-certificates tzdata libicu70 libatomic1 busybox && \
+    apt install -y --no-install-recommends curl ca-certificates tzdata libicu74 libatomic1 busybox xz-utils && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
@@ -72,24 +80,27 @@ RUN npm config set strict-ssl false && \
 
 # Final image
 FROM base
-RUN npm install -g pm2 && \
+ENV VIRTUAL_ENV=/opt/venv
+ENV PATH="${VIRTUAL_ENV}/bin:${PATH}"
+RUN npm install -g pm2@5.4.2 && \
     apt update && \
-    apt install -y --no-install-recommends gosu python3-minimal python-is-python3 python3-pip atomicparsley build-essential && \
-    pip install pycryptodomex && \
+    apt install -y --no-install-recommends gosu python3 python3-venv atomicparsley build-essential && \
+    /usr/bin/python3 -m venv "$VIRTUAL_ENV" && \
+    python3 -m pip install --no-cache-dir pycryptodomex py_mini_racer ipython pymongo && \
     apt remove -y --purge build-essential && \
     apt autoremove -y --purge && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-#install python pkg for downloader, #evaluate js in python
-RUN pip install py_mini_racer
-RUN pip install ipython
-RUN pip install pymongo
+# Fail the build if the interpreter selected by yt-dlp is unsupported.
+RUN python3 -c "import sys; assert sys.version_info >= (3, 11), sys.version" && \
+    python3 -m pip check
 
 # User 1000 already exist from base image
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffmpeg", "/usr/local/bin/ffmpeg" ]
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffprobe", "/usr/local/bin/ffprobe" ]
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/TwitchDownloaderCLI", "/usr/local/bin/TwitchDownloaderCLI"]
+RUN ffmpeg -version && ffprobe -version && TwitchDownloaderCLI --help
 COPY --chown=$UID:$GID --from=backend ["/app/","/app/"]
 COPY --chown=$UID:$GID --from=frontend [ "/build/backend/public/", "/app/public/" ]
 #COPY --chown=$UID:$GID --from=python ["/app/TwitchDownloaderCLI","/usr/local/bin/TwitchDownloaderCLI"]
