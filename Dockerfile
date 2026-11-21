@@ -47,7 +47,7 @@ RUN . "$NVM_DIR/nvm.sh" && nvm alias default v${NODE_VERSION}
 
 # Build frontend
 ARG BUILDPLATFORM
-FROM --platform=${BUILDPLATFORM} node:16 as frontend
+FROM --platform=${BUILDPLATFORM} node:16 AS frontend
 RUN npm install -g @angular/cli
 WORKDIR /build
 COPY [ "package.json", "package-lock.json", "angular.json", "tsconfig.json", "/build/" ]
@@ -60,7 +60,7 @@ RUN rm -rf node_modules
 
 
 # Install backend deps
-FROM base as backend
+FROM base AS backend
 WORKDIR /app
 COPY [ "backend/","/app/" ]
 RUN npm config set strict-ssl false && \
@@ -100,7 +100,10 @@ RUN python3 -c "import sys; assert sys.version_info >= (3, 11), sys.version" && 
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffmpeg", "/usr/local/bin/ffmpeg" ]
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffprobe", "/usr/local/bin/ffprobe" ]
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/TwitchDownloaderCLI", "/usr/local/bin/TwitchDownloaderCLI"]
-RUN ffmpeg -version && ffprobe -version && TwitchDownloaderCLI --help
+RUN ffmpeg -version
+RUN ffprobe -version
+# The help command returns 1 even when the executable starts successfully.
+RUN TwitchDownloaderCLI version
 COPY --chown=$UID:$GID --from=backend ["/app/","/app/"]
 COPY --chown=$UID:$GID --from=frontend [ "/build/backend/public/", "/app/public/" ]
 #COPY --chown=$UID:$GID --from=python ["/app/TwitchDownloaderCLI","/usr/local/bin/TwitchDownloaderCLI"]

@@ -35,5 +35,5 @@ curl -o twitchdownloader.zip \
 unzip twitchdownloader.zip
 chmod +x TwitchDownloaderCLI
 echo "(3/5) Smoke test"
-./TwitchDownloaderCLI --help
+./TwitchDownloaderCLI version || exit 1
 cp ./TwitchDownloaderCLI /usr/local/bin/TwitchDownloaderCLI
