@@ -73,7 +73,7 @@ RUN npm install -g pm2@5.4.2 && \
     apt update && \
     apt install -y --no-install-recommends gosu python3 python3-venv atomicparsley build-essential && \
     /usr/bin/python3 -m venv "$VIRTUAL_ENV" && \
-    python3 -m pip install --no-cache-dir pycryptodomex py_mini_racer ipython pymongo && \
+    python3 -m pip install --no-cache-dir pycryptodomex py_mini_racer ipython pymongo curl_cffi && \
     apt remove -y --purge build-essential && \
     apt autoremove -y --purge && \
     apt clean && \
@@ -81,6 +81,7 @@ RUN npm install -g pm2@5.4.2 && \
 WORKDIR /app
 # Fail the build if the interpreter selected by yt-dlp is unsupported.
 RUN python3 -c "import sys; assert sys.version_info >= (3, 11), sys.version" && \
+    python3 -c "from curl_cffi import requests" && \
     python3 -m pip check
 
 # User 1000 already exist from base image
