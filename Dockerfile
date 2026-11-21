@@ -2,10 +2,8 @@
 FROM ubuntu:24.04 AS utils
 ENV DEBIAN_FRONTEND=noninteractive
 # Use script due local build compability
-COPY docker-utils/*.sh .
-RUN chmod +x *.sh
+COPY docker-utils/ffmpeg-fetch.sh .
 RUN sh ./ffmpeg-fetch.sh
-RUN sh ./fetch-twitchdownloader.sh
 
 
 # Ubuntu 24.04 provides Python 3.12. Keep Node 16.14.2 for the app.
@@ -67,17 +65,6 @@ RUN npm config set strict-ssl false && \
     npm install --prod && \
     ls -al
 
-#FROM base as python
-# armv7 need build from source
-#WORKDIR /app
-#COPY docker-utils/GetTwitchDownloader.py .
-#RUN apt update && \
-#    apt install -y --no-install-recommends python3-minimal python-is-python3 python3-pip python3-dev build-essential libffi-dev && \
-#    apt clean && \
-#    rm -rf /var/lib/apt/lists/*
-#RUN pip install PyGithub requests
-#RUN python GetTwitchDownloader.py
-
 # Final image
 FROM base
 ENV VIRTUAL_ENV=/opt/venv
@@ -99,14 +86,10 @@ RUN python3 -c "import sys; assert sys.version_info >= (3, 11), sys.version" && 
 # User 1000 already exist from base image
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffmpeg", "/usr/local/bin/ffmpeg" ]
 COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/ffprobe", "/usr/local/bin/ffprobe" ]
-COPY --chown=$UID:$GID --from=utils [ "/usr/local/bin/TwitchDownloaderCLI", "/usr/local/bin/TwitchDownloaderCLI"]
 RUN ffmpeg -version
 RUN ffprobe -version
-# The help command returns 1 even when the executable starts successfully.
-RUN TwitchDownloaderCLI version
 COPY --chown=$UID:$GID --from=backend ["/app/","/app/"]
 COPY --chown=$UID:$GID --from=frontend [ "/build/backend/public/", "/app/public/" ]
-#COPY --chown=$UID:$GID --from=python ["/app/TwitchDownloaderCLI","/usr/local/bin/TwitchDownloaderCLI"]
 RUN chmod +x /app/fix-scripts/*.sh
 # Add some persistence data
 #VOLUME ["/app/appdata"]
